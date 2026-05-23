@@ -70,7 +70,7 @@
                 </div>
                 <div class="media__body top">
                   <h1 class="discussion__title"><a href="{{ url('contest_summary_detail', pid=ddoc.problemId, tid=tdoc.docId) + '?uid=' + ddoc.owner }}" data-emoji-enabled>
-                    {{ _("{0}'s summary of problem {1}. {2}").format(ddoc['uname'], ddoc['problemId'], ddoc['pTitle']) }}
+                    {{ _("{0}'s summary of problem {1}. {2}").format(ddoc.displayName if ddoc.displayName else ddoc.uname, ddoc['problemId'], ddoc['pTitle']) }}
                   </a></h1>
                   <ul class="supplementary list">
                     <li>{{ _('{0} views').format(ddoc.views) }}</li>

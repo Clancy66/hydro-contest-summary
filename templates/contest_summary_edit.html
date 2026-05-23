@@ -5,7 +5,7 @@
   <div class="medium-9 columns">
     <div class="section">
       <div class="section__header">
-        <h1 class="section__title">{{ _("{0}'s summary of {1}").format(ddoc.uname, tdoc.title) }}</h1>
+        <h1 class="section__title">{{ _("{0}'s summary of {1}").format(udoc.realname_name if udoc.realname_name else (displayName if displayName else udoc.uname), tdoc.title) }}</h1>
         <blockquote class="note">
           <p>{{ _('Click the button below to view, create, or edit summaries for specific problems.') }}</p>
           </br>

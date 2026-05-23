@@ -7,7 +7,7 @@
   <div class="medium-9 columns">
     <div class="section">
       <div class="section__header">
-        <h1 class="section__title">{{ _("{0}'s summary of {1}").format(udoc.uname, tdoc.title) }}</h1>
+        <h1 class="section__title">{{ _("{0}'s summary of {1}").format(udoc.realname_name if udoc.realname_name else (displayName if displayName else udoc.uname), tdoc.title) }}</h1>
         <blockquote class="note">
           <p>{{ _('Click the button below to view, create, or edit summaries for specific problems.') }}</p>
           </br>
@@ -92,7 +92,7 @@
                 </div>
                 <div class="media__body top">
                   <h1 class="discussion__title"><a href="{{ url('contest_summary_detail', pid=ddoc.problemId, tid=tdoc.docId) + '?uid=' + ddoc.owner }}" data-emoji-enabled>
-                    {{ _("{0}'s summary of problem {1}. {2}").format(ddoc['uname'], ddoc['problemId'], ddoc['pTitle']) }}
+                    {{ _("{0}'s summary of problem {1}. {2}").format(ddoc.displayName if ddoc.displayName else ddoc.uname, ddoc['problemId'], ddoc['pTitle']) }}
                   </a></h1>
                   <ul class="supplementary list">
                     <li>{{ _('{0} views').format(ddoc.views) }}</li>

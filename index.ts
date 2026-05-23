@@ -3,6 +3,7 @@ import {
     Handler, NumberKeys, ObjectId, OplogModel,
     param, PRIV, ProblemModel, Types, UserModel,
     ForbiddenError,
+    DomainModel,
 } from 'hydrooj';
 
 const collsummary = db.collection('summary');
@@ -10,6 +11,7 @@ const collsummary = db.collection('summary');
 interface SummaryDoc {
     owner: number;
     uname: string,
+    displayName: string,
     contestId: ObjectId;
     problemId: string,
     pTitle: string,
@@ -33,9 +35,11 @@ class SummaryModel {
     static async add(
         domainId: string, owner: number, contestId: ObjectId, problemId: string, content: string,
     ): Promise<ObjectId> {
+        const udoc = await UserModel.getById(domainId, owner);
         const result = await SummaryModel.coll.insertOne({ 
             owner, 
-            uname: (await UserModel.getById(domainId, owner)).uname,
+            uname: udoc.uname,
+            displayName: (await DomainModel.getDomainUser(domainId, udoc)).displayName,
             contestId,
             problemId, 
             pTitle: (await ProblemModel.get(domainId, problemId)).title,
@@ -155,6 +159,7 @@ class SummaryUserHandler extends SummaryHandler {
             udoc,
             pdoc,
             page,
+            displayName: (await DomainModel.getDomainUser(domainId, udoc)).displayName,
         };
         if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
             this.response.redirect = this.url('contest_summary_detail', { tid: tid, pid: pdoc[0].pid });
@@ -220,6 +225,7 @@ class SummaryDetailHandler extends SummaryHandler {
 
         this.response.body = {
             tdoc, tsdoc, ddoc: await SummaryModel.get(query), udoc, pdoc, pid,
+            displayName: (await DomainModel.getDomainUser(domainId, udoc)).displayName,
         };
 
         this.response.template = 'contest_summary_detail.html';
@@ -264,6 +270,7 @@ class SummaryEditHandler extends SummaryHandler {
         this.response.template = 'contest_summary_edit.html';
         this.response.body = {
             tdoc, tsdoc, ddoc, udoc, pdoc, pid,
+            displayName: (await DomainModel.getDomainUser(domainId, udoc)).displayName,
         };
     }
 
