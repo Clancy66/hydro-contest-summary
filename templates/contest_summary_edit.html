@@ -1,0 +1,85 @@
+{% extends "layout/basic.html" %}
+{% set default_content %}{% include "partials/summary_default.md" %}{% endset %}
+{% block content %}
+<div class="row">
+  <div class="medium-9 columns">
+    <div class="section">
+      <div class="section__header">
+        <h1 class="section__title">{{ _("{0}'s summary of {1}").format(ddoc.uname, tdoc.title) }}</h1>
+        <blockquote class="note">
+          <p>{{ _('Click the button below to view, create, or edit summaries for specific problems.') }}</p>
+          </br>
+          <p>{{ _('The summary content supports Markdown syntax and can be used to record solution write-ups, post-contest analysis, etc.') }}</p>
+          {% if handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
+          </br>
+          <p>{{ _('Published summaries are visible to all contestants on the contest details page. Private summaries are only visible to you and admins. You can unpublish at any time.') }}</p>
+          {% else %}
+          </br>
+          <p>{{ _('Featured summaries will be selected by admins and displayed on the contest details page for all contestants.') }}</p>
+          {% endif %}
+        </blockquote>
+      </div>
+      <div class="section__body">
+        <div class="contest-problems" style="display: flex !important; 
+                                             flex-direction: row !important; 
+                                             flex-wrap: wrap !important; 
+                                             gap: 10px !important; 
+                                             align-items: center !important; 
+                                             justify-content: flex-start !important; 
+                                             width: 100% !important;">
+          {% if tdoc and tdoc.pids|length <= 26 and tdoc.pids|length > 1 %}
+              {% for p in pdoc -%}
+                <a class="problem__tag-item interactive {% if pid === p.pid %} active{% endif %}"
+                   href="{{ url('contest_summary_detail', tid=tdoc.docId, uid=udoc._id, pid=p.pid)}}"
+                   style="display: inline-flex !important; 
+                          align-items: center !important; 
+                          justify-content: center !important; 
+                          width: auto !important; 
+                          min-width: 0 !important; 
+                          height: auto !important; 
+                          padding: 6px 16px !important; 
+                          text-decoration: none !important; 
+                          white-space: nowrap !important;"
+                   >
+                {{ utils.getAlphabeticId(loop.index0) }}. {{ p.title }}
+                </a>
+              {%- endfor %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section__body">
+        <form method="post">
+          {{ form.form_textarea({
+                columns:12,
+                label:'Content',
+                name:'content',
+                value:ddoc.content|default(default_content),
+                markdown:true,
+                required:true,
+                extra_style:'height: 500px',
+                extra_textarea_class:'auto-resize'
+              }) }}
+          <div class="row"><div class="columns">
+              <button name="operation" value="{{ 'update' if ddoc else 'create' }}" data-default-submit type="submit" class="rounded primary button">
+                {{ _('Update') if ddoc else _('Create') }}
+              </button>
+            {% if ddoc and ((handler.user.hasPriv(PRIV.PRIV_EDIT_SYSTEM) or handler.user.own(ddoc))) %}
+              <button name="operation" value="delete" type="submit" class="rounded button">
+                {{ _('Delete') }}
+              </button>
+            {% endif %}
+            <button type="button" class="rounded button" onclick="window.history.go(-1)">
+              {{ _('Cancel') }}
+            </button>
+          </div></div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="medium-3 columns">
+    {% include 'components/md_hint.html' %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "layout/basic.html" %}
+{% block content %}
+<div class="row">
+  <div class="medium-9 columns">
+  <div class="section">
+      <div class="section__header">
+        <h1 class="section__title">{{ _("{0}'s summary of {1}").format(udoc.uname, tdoc.title) }}</h1>
+        <blockquote class="note">
+          <p>{{ _('Click the button below to view, create, or edit summaries for specific problems.') }}</p>
+          </br>
+          <p>{{ _('The summary content supports Markdown syntax and can be used to record solution write-ups, post-contest analysis, etc.') }}</p>
+          {% if handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
+          </br>
+          <p>{{ _('Published summaries are visible to all contestants on the contest details page. Private summaries are only visible to you and admins. You can unpublish at any time.') }}</p>
+          {% else %}
+          </br>
+          <p>{{ _('Featured summaries will be selected by admins and displayed on the contest details page for all contestants.') }}</p>
+          {% endif %}
+        </blockquote>
+      </div>
+      <div class="section__body">
+        <div class="contest-problems" style="display: flex !important; 
+                                             flex-direction: row !important; 
+                                             flex-wrap: wrap !important; 
+                                             gap: 10px !important; 
+                                             align-items: center !important; 
+                                             justify-content: flex-start !important; 
+                                             width: 100% !important;">
+          {% if tdoc and tdoc.pids|length <= 26 and tdoc.pids|length > 1 %}
+              {% for p in pdoc -%}
+                <a class="problem__tag-item interactive {% if pid === p.pid %} active{% endif %}"
+                   href="{{ url('contest_summary_detail', tid=tdoc.docId, pid=p.pid)}}"
+                   style="display: inline-flex !important; 
+                          align-items: center !important; 
+                          justify-content: center !important; 
+                          width: auto !important; 
+                          min-width: 0 !important; 
+                          height: auto !important; 
+                          padding: 6px 16px !important; 
+                          text-decoration: none !important; 
+                          white-space: nowrap !important;"
+                   >
+                {{ utils.getAlphabeticId(loop.index0) }}. {{ p.title }}
+                </a>
+              {%- endfor %}
+          {% endif %}
+        </div>
+        {% if handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
+        <form method="get">
+        <div style="display: flex; align-items: flex-end; gap: 10px;">
+          {% if page==="contest_summary" %}
+          <div class="medium-2 columns" style="margin-bottom: 0;">
+            <label class="filter-user" style="margin-bottom: 0;">
+              {{ _('By Username / UID') }}
+              <input name="uidOrName" type="text" class="textbox" value="{{ filterUidOrName }}" autocomplete="off" data-autofocus>
+            </label>
+          </div>
+          <div class="medium-2 columns" style="margin-bottom: 0;">
+            <label class="filter-user" style="margin-bottom: 0;">
+              {{ _('By Problem ID') }}
+              <input name="ProblemID" type="text" class="textbox" value="{{ filterPid }}" autocomplete="off" data-autofocus>
+            </label>
+          </div>
+          <div class="medium-2 columns" style="margin-bottom: 0;">
+            <label class="filter-user" style="margin-bottom: 0;">
+              {{ _('By Problem Title') }}
+              <input name="ProblemTitle" type="text" class="textbox" value="{{ filterProblemTitle }}" autocomplete="off" data-autofocus>
+            </label>
+          </div>
+          <div class="row" style="margin: 0;">
+            <button type="submit" class="rounded primary button"><span class="icon icon-filter"></span> {{ _('Filter') }}</button>
+            <a href="{{ url('contest_summary', tid=tdoc.docId) }}" class="rounded button">{{ _('Reset') }}</a>
+          </div>
+          {% endif %}
+          <div style="display: flex; align-items: flex-end; gap: 10px;">
+          <div class="row" style="margin: 0;">
+            <a href="{{ url('contest_summary', tid=tdoc.docId) }}" class="rounded button">{{ _('Back') }}</a>
+          </div>
+        </div>
+        </div></form>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section__body">
+        <div class="typo richmedia topic__content" data-emoji-enabled>
+          {% if ddoc === null %}
+            <h3>{{ _('no summary yet...') }}</h3>
+          {% else %}
+            <h1 class="section__title">{{ _("{0}'s summary of problem {1}. {2}").format(ddoc['uname'], ddoc['problemId'], ddoc['pTitle']) }}</h1>
+            {{ ddoc['content']|markdown|safe }}
+          {% endif %}
+        </div>
+      </div>
+      <ul class="section__footer supplementary dot list">
+        {% if ddoc === null %}
+          <li><a href="{{ url('contest_summary_edit', tid=tdoc._id, pid=pid) }}">
+            <button name="operation" value="create" data-default-submit type="submit" class="rounded primary button">
+              {{ _('Create') }}
+            </button>
+          </a></li>
+        {% else %}
+          <li><a href="{{ url('contest_summary_edit', tid=tdoc._id, pid=pid) + '?uid=' + ddoc.owner }}">
+            <button name="operation" value="update" data-default-submit type="submit" class="rounded primary button">
+              {{ _('Update') }}
+            </button>
+          </a></li>
+          {% if handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
+          {% if ddoc.isPublic === true %}
+          <li><a href="{{ url('contest_summary_detail', tid=tdoc._id, pid=pid) + '?uid=' + ddoc.owner + '&pb=false' }}">
+            <button name="operation" value="update" data-default-submit type="submit" class="rounded primary button">
+              {{ _('Private') }}
+            </button>
+          </a></li>
+          {% else %}
+          <li><a href="{{ url('contest_summary_detail', tid=tdoc._id, pid=pid) + '?uid=' + ddoc.owner + '&pb=true' }}">
+            <button name="operation" value="update" data-default-submit type="submit" class="rounded primary button">
+              {{ _('Public') }}
+            </button>
+          </a></li>
+          {% endif %}
+          {% endif %}
+          <li>{{ _('{0} views').format(ddoc.views) }}</li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+  <div class="medium-3 columns">
+    {% include 'partials/contest_sidebar.html' %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "layout/basic.html" %}
+{% import "components/contest.html" as contest with context %}
+{% import "components/record.html" as record with context %}
+{% import "components/problem.html" as problem with context %}
+{% block content %}
+{{ set(UiContext, 'tdoc', tdoc) }}
+{{ set(UiContext, 'tsdoc', tsdoc) }}
+{% set ddocs = ddocs | default(UiContext.ddocs) | default([]) %}
+{{ set(UiContext, 'ddocs', ddocs) }}
+<div class="row">
+  <div class="medium-9 columns">
+    <div class="section">
+      <div class="section__header" style="align: center">
+        <h1 class="section__title">{{ tdoc.title }}</h1>
+      </div>
+      <div class="section__body">
+        <span class="problem__tag-item">{{ _(model.contest.statusText(tdoc, tsdoc)) }}</span>
+        <span class="problem__tag-item icon icon-award">{{ _(model.contest.RULES[tdoc.rule].TEXT) }}</span>
+        <span class="problem__tag-item">{{ _('Start at') }}: {{ contest.render_time(tsdoc.startAt or tdoc.beginAt) }}</span>
+        <span class="problem__tag-item icon icon-schedule">{{ contest.render_duration(tdoc) }} {{ _('hour(s)') }}</span>
+        <span class="problem__tag-item">{{ _('Host') }}: {{ user.render_inline(udict[tdoc.owner], badge=false) }}</span>
+        <span class="problem__tag-item icon icon-user--multiple">{{ tdoc['attend']|default(0) }}</span>
+        {% if tsdoc.attend %}
+          <span class="problem__tag-item icon icon-check">{{ _('Attended') }}</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="section">
+      <div class="section__body typo richmedia">
+        {{ tdoc['content']|markdown|safe }}
+      {% if model.contest.isOngoing(tdoc, tsdoc) %}
+        <blockquote class="warn">
+          <p>{{ _('We will check code similarity after this contest.') }}</p>
+        </blockquote>
+      {% endif %}
+      {% if tdoc.duration %}
+        <blockquote class="note">
+          <p>{{ _('The contest is a flexible time contest. You need to complete the contest within a specified time after you attended.') }}</p>
+        </blockquote>
+      {% endif %}
+      </div>
+    </div>
+    {% if files.length %}
+      <div class="section">
+        <div class="section__header">
+          <h1 class="section__title">{{ _('Files') }}</h1>
+        </div>
+        {% set filetype = 'private' %}
+        {% include "partials/files.html" %}
+      </div>
+    {% endif %}
+    {% if handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) or (tsdoc.attend and tsdoc.endAt) %}
+    <div class="section">
+      <div class="section__header">
+        <h1 class="section__title">{{ _('View Public Summary') }}</h1>
+      </div>
+      <div class="section__body">
+      {% if not ddocs.length %}
+        {{ nothing.render('no summary yet...') }}
+      {% else %}
+        <ol class="section__list discussion__list">
+          {%- for ddoc in ddocs -%}
+            <li class="section__list__item discussion__item">
+              <div class="media">
+                <div class="media__left">
+                  <div class="discussion__replies numbox">
+                    <div class="numbox__num large">{{ datetimeSpan(ddoc._id, false, 'D')|safe }}</div>
+                    <div class="numbox__text">{{ datetimeSpan(ddoc._id, false, 'YYYY-M')|safe }}</div>
+                  </div>
+                </div>
+                <div class="media__body top">
+                  <h1 class="discussion__title"><a href="{{ url('contest_summary_detail', pid=ddoc.problemId, tid=tdoc.docId) + '?uid=' + ddoc.owner }}" data-emoji-enabled>
+                    {{ _("{0}'s summary of problem {1}. {2}").format(ddoc['uname'], ddoc['problemId'], ddoc['pTitle']) }}
+                  </a></h1>
+                  <ul class="supplementary list">
+                    <li>{{ _('{0} views').format(ddoc.views) }}</li>
+                    <li>{{ datetimeSpan(ddoc.updateAt)|safe }}</li>
+                  </ul>
+                </div>
+              </div>
+            </li>
+          {%- endfor -%}
+        </ol>
+        {% if page and dpcount %}{{ paginator.render(page, dpcount) }}{% endif %}
+      {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  <div class="medium-3 columns">
+  {% set owner_udoc = udict[tdoc.owner] %}
+  {% include "partials/contest_sidebar.html" %}
+  </div>
+</div>
+{% endblock %}

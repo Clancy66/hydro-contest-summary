@@ -1,0 +1,8 @@
+{
+  "name": "summary",
+  "version": "1.0.0",
+  "description": "赛后总结",
+  "main": "index.ts",
+  "author": "Clancy",
+  "license": "MIT"
+}
