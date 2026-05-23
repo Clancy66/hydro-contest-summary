@@ -122,12 +122,10 @@ class SummaryUserHandler extends SummaryHandler {
                 query['owner'] = uudoc._id;
             }
         }
-        const pidRaw = this.request.query.ProblemID;
-        const pid = typeof pidRaw === 'string' ? pidRaw.trim() : '';
+
         const pTitleRaw = this.request.query.ProblemTitle;
         const pTitle = typeof pTitleRaw === 'string' ? pTitleRaw.trim() : '';
 
-        if (pid) query['problemId'] = pid;
         if (pTitle) query['pTitle'] = pTitle;
 
         const [ddocs, dpcount] = await this.ctx.db.paginate(

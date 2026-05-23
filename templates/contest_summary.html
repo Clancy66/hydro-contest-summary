@@ -51,19 +51,13 @@
         {% if handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
         <form method="get">
         <div style="display: flex; align-items: flex-end; gap: 10px;">
-          <div class="medium-2 columns" style="margin-bottom: 0;">
+          <div class="medium-3 columns" style="margin-bottom: 0;">
             <label class="filter-user" style="margin-bottom: 0;">
               {{ _('By Username / UID') }}
               <input name="uidOrName" type="text" class="textbox" value="{{ filterUidOrName }}" autocomplete="off" data-autofocus>
             </label>
           </div>
-          <div class="medium-2 columns" style="margin-bottom: 0;">
-            <label class="filter-user" style="margin-bottom: 0;">
-              {{ _('By Problem ID') }}
-              <input name="ProblemID" type="text" class="textbox" value="{{ filterPid }}" autocomplete="off" data-autofocus>
-            </label>
-          </div>
-          <div class="medium-2 columns" style="margin-bottom: 0;">
+          <div class="medium-3 columns" style="margin-bottom: 0;">
             <label class="filter-user" style="margin-bottom: 0;">
               {{ _('By Problem Title') }}
               <input name="ProblemTitle" type="text" class="textbox" value="{{ filterProblemTitle }}" autocomplete="off" data-autofocus>
