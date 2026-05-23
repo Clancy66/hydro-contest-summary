@@ -138,6 +138,9 @@ class SummaryUserHandler extends SummaryHandler {
         const tsdoc = this.user.hasPriv(PRIV.PRIV_USER_PROFILE)
             ? await ContestModel.getStatus(domainId, tid, this.user._id)
             : null;
+        if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) && (!tsdoc || !tsdoc.startAt || !tsdoc.endAt)) {
+            throw new ForbiddenError('暂无查看权限！');
+        }
         const udoc = await UserModel.getById(domainId, this.user._id);
         let pdoc = [];
         for (const i in tdoc.pids) {
