@@ -250,7 +250,7 @@ class SummaryEditHandler extends SummaryHandler {
             ? await ContestModel.getStatus(domainId, tid, this.user._id)
             : null;
         const ddoc = await SummaryModel.get(query);
-        if (ddoc.isPublic === true && !this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
+        if (ddoc && ddoc.isPublic === true && !this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
             throw new ForbiddenError('不允许修改已公开总结！');
         }
         const udoc = await UserModel.getById(domainId, this.user._id);
