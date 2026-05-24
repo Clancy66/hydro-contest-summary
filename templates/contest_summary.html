@@ -49,23 +49,42 @@
           {% endif %}
         </div>
         {% if handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
-        <form method="get">
-        <div style="display: flex; align-items: flex-end; gap: 10px;">
+        <form method="get" class="filter-form" name="filter-form">
+        <div style="display: flex; align-items: flex-end; gap: 15px; margin: 0; flex-wrap: wrap;">
           <div class="medium-3 columns" style="margin-bottom: 0;">
-            <label class="filter-user" style="margin-bottom: 0;">
-              {{ _('By Username / UID') }}
-              <input name="uidOrName" type="text" class="textbox" value="{{ filterUidOrName }}" autocomplete="off" data-autofocus>
-            </label>
+            <label>{{ _('By User') }}</label>
+            <select class="compact select" name="uid">
+              <option value=""{% if not uid %} selected{% endif %}>{{ _('All') }}</option>
+              {%- for u in tudoc -%}
+                <option value="{{ u._id }}"{% if uid == u._id %} selected {% endif %}>{{ u.uname }}</option>
+              {%- endfor -%}
+              {%- if not tudoc|length -%}
+                <option disabled>{{ _('No user available') }}</option>
+              {%- endif -%}
+            </select>
           </div>
           <div class="medium-3 columns" style="margin-bottom: 0;">
-            <label class="filter-user" style="margin-bottom: 0;">
-              {{ _('By Problem Title') }}
-              <input name="ProblemTitle" type="text" class="textbox" value="{{ filterProblemTitle }}" autocomplete="off" data-autofocus>
-            </label>
+            <label>{{ _('By Problem') }}</label>
+            <select class="compact select" name="pid">
+              <option value=""{% if not pid %} selected{% endif %}>{{ _('All') }}</option>
+              {%- for p in pdoc -%}
+                <option value="{{ p.pid }}"{% if pid == p.pid %} selected {% endif %}>{{ utils.getAlphabeticId(loop.index0) }}. {{ p.title }}</option>
+              {%- endfor -%}
+              {%- if not pdoc|length -%}
+                <option disabled>{{ _('No problem available') }}</option>
+              {%- endif -%}
+            </select>
           </div>
-          <div class="row" style="margin: 0;">
-            <button type="submit" class="rounded primary button"><span class="icon icon-filter"></span> {{ _('Filter') }}</button>
-            <a href="{{ url('contest_summary', tid=tdoc.docId) }}" class="rounded button">{{ _('Reset') }}</a>
+          <div class="medium-3 columns" style="margin-bottom: 0; float: none;">
+            <label style="visibility: hidden;"></label> <!-- 💡 隐形标签，用来吃掉和前面完全一样的高度 -->
+            <div style="display: flex; gap: 10px; height: 38px; align-items: center;">
+              <button type="submit" class="rounded primary button" style="margin: 0; padding: 0 1.2rem; height: 100%; line-height: 38px;">
+                <span class="icon icon-filter"></span> {{ _('Filter') }}
+              </button>
+              <a href="{{ url('contest_summary', tid=tdoc.docId) }}" class="rounded button" style="margin: 0; padding: 0 1.2rem; height: 100%; line-height: 38px; display: inline-flex; align-items: center; justify-content: center;">
+                {{ _('Reset') }}
+              </a>
+            </div>
           </div>
         </div></form>
         {% endif %}

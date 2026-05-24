@@ -4,7 +4,9 @@ import {
     param, PRIV, ProblemModel, Types, UserModel,
     ForbiddenError,
     DomainModel,
+    DocumentModel,
 } from 'hydrooj';
+import { TYPE_CONTEST } from 'hydrooj/src/model/document';
 
 const collsummary = db.collection('summary');
 
@@ -112,12 +114,10 @@ class SummaryUserHandler extends SummaryHandler {
 
         let query = {contestId: tid};
         // const queryParams =  || {}; 
-        const uidOrNameRaw = this.request.query.uidOrName;
-        const uidOrName = typeof uidOrNameRaw === 'string' ? uidOrNameRaw.trim() : '-1';
-        if (uidOrName) {
-            const uudoc = await UserModel.getById(domainId, +uidOrName)
-                    || await UserModel.getByUname(domainId, uidOrName)
-                    || await UserModel.getByEmail(domainId, uidOrName);
+        const uidRaw = this.request.query.uid;
+        const uid = typeof uidRaw === 'string' ? uidRaw.trim() : '-1';
+        if (uid) {
+            const uudoc = await UserModel.getById(domainId, +uid);
 
             if (uudoc) {
                 if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) && this.user._id !== uudoc._id) {
@@ -127,10 +127,10 @@ class SummaryUserHandler extends SummaryHandler {
             }
         }
 
-        const pTitleRaw = this.request.query.ProblemTitle;
-        const pTitle = typeof pTitleRaw === 'string' ? pTitleRaw.trim() : '';
+        const pidRaw = this.request.query.pid;
+        const pid = typeof pidRaw === 'string' ? pidRaw.trim() : '';
 
-        if (pTitle) query['pTitle'] = pTitle;
+        if (pid) query['problemId'] = pid;
 
         const [ddocs, dpcount] = await this.ctx.db.paginate(
             await SummaryModel.getMulti(query),
@@ -144,6 +144,11 @@ class SummaryUserHandler extends SummaryHandler {
             : null;
         if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) && (!tsdoc || !tsdoc.startAt || !tsdoc.endAt)) {
             throw new ForbiddenError('暂无查看权限！');
+        }
+        const tudocs = await DocumentModel.getMultiStatus(domainId, TYPE_CONTEST, {docId: tid}).toArray();
+        let tudoc = [];
+        for (const i in tudocs) {
+            tudoc.push(await UserModel.getById(domainId, tudocs[i].uid));
         }
         const udoc = await UserModel.getById(domainId, this.user._id);
         let pdoc = [];
@@ -159,6 +164,9 @@ class SummaryUserHandler extends SummaryHandler {
             udoc,
             pdoc,
             page,
+            tudoc,
+            uid,
+            pid,
             displayName: (await DomainModel.getDomainUser(domainId, udoc)).displayName,
         };
         if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
@@ -359,8 +367,10 @@ export async function apply(ctx: Context) {
         "{0}'s summary of problem {1}. {2}": '{0} 的总结：{1}. {2}',
         'View Summary': '查看比赛总结',
         'View Public Summary': '查看公开总结',
-        'By Problem ID': '由题目 ID',
-        'By Problem Title': '由题目标题',
+        'By User': '由用户',
+        'By Problem': '由题目',
+        'No user available': '无可用用户',
+        'No problem available': '无可用题目',
         Summary: '比赛总结',
         Back: '返回',
         summary_detail: '总结详情',
