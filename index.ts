@@ -11,16 +11,16 @@ import { TYPE_CONTEST } from 'hydrooj/src/model/document';
 const collsummary = db.collection('summary');
 
 interface SummaryDoc {
-    owner: number;
+    owner: number,
     uname: string,
     displayName: string,
-    contestId: ObjectId;
+    contestId: ObjectId,
     problemId: string,
     pTitle: string,
-    content: string;
-    updateAt: Date;
-    views: number;
-    isPublic: boolean;
+    content: string,
+    updateAt: Date,
+    views: number,
+    isPublic: boolean,
 }
 declare module 'hydrooj' {
     interface Model {
