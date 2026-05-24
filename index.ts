@@ -338,7 +338,7 @@ class SummaryEditHandler extends SummaryHandler {
         const ddoc = await SummaryModel.get(query);
         await Promise.all([
             SummaryModel.del(ddoc.contestId, ddoc.owner, ddoc.problemId),
-            OplogModel.log(this, 'summary.delete', this.ddoc),
+            OplogModel.log(this, 'summary.delete', ddoc),
         ]);
         this.response.redirect = this.url('contest_summary_detail', { tid: tid, pid: pid });
     }
