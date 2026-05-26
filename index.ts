@@ -11,6 +11,7 @@ import { TYPE_CONTEST } from 'hydrooj/src/model/document';
 const collsummary = db.collection('summary');
 
 interface SummaryDoc {
+    domainId: string,
     owner: number,
     uname: string,
     displayName: string,
@@ -39,6 +40,7 @@ class SummaryModel {
     ): Promise<ObjectId> {
         const udoc = await UserModel.getById(domainId, owner);
         const result = await SummaryModel.coll.insertOne({ 
+            domainId,
             owner, 
             uname: udoc.uname,
             displayName: (await DomainModel.getDomainUser(domainId, udoc)).displayName,
@@ -64,30 +66,30 @@ class SummaryModel {
         return result;
     }
 
-    static async edit(tid: ObjectId, uid: number, pid: string, content: string): Promise<number> {
+    static async edit(domainId: string, tid: ObjectId, uid: number, pid: string, content: string): Promise<number> {
         const result = await SummaryModel.coll.updateOne(
-            { contestId: tid, owner: uid, problemId: pid },
+            { domainId, contestId: tid, owner: uid, problemId: pid },
             { $set: { content, updateAt: new Date() } }
         );
         return result.modifiedCount;
     }
 
-    static async public(tid: ObjectId, uid: number, pid: string, isPublic: boolean) {
+    static async public(domainId: string, tid: ObjectId, uid: number, pid: string, isPublic: boolean) {
         const result = await SummaryModel.coll.updateOne(
-            { contestId: tid, owner: uid, problemId: pid },
+            { domainId, contestId: tid, owner: uid, problemId: pid },
             { $set: { isPublic, updateAt: new Date()  } }
         );
         return result.modifiedCount;
     }
 
-    static async del(tid: ObjectId, uid: number, pid: string): Promise<number> {
-        const result = await SummaryModel.coll.deleteOne({ contestId: tid, owner: uid, problemId: pid });
+    static async del(domainId: string, tid: ObjectId, uid: number, pid: string): Promise<number> {
+        const result = await SummaryModel.coll.deleteOne({ domainId, contestId: tid, owner: uid, problemId: pid });
         return result.deletedCount;
     }
 
-    static async inc(tid: ObjectId, uid: number, pid: string, key: NumberKeys<SummaryDoc>, value: number) {
+    static async inc(domainId: string, tid: ObjectId, uid: number, pid: string, key: NumberKeys<SummaryDoc>, value: number) {
         const result = await SummaryModel.coll.findOneAndUpdate(
-            { contestId: tid, owner: uid, problemId: pid },
+            { domainId, contestId: tid, owner: uid, problemId: pid },
             { $inc: { [key]: value } }
         );
         return result;
@@ -100,7 +102,7 @@ class SummaryHandler extends Handler {
     ddoc?: SummaryModel;
 
     async _prepare(domainId: string, tid: ObjectId) {
-        this.ddoc = await SummaryModel.get({owner: this.user._id, contestId: tid});
+        this.ddoc = await SummaryModel.get({domainId, owner: this.user._id, contestId: tid});
     }
 }
 
@@ -112,7 +114,7 @@ class SummaryUserHandler extends SummaryHandler {
             throw new ForbiddenError();
         }
 
-        let query = {contestId: tid};
+        let query = {domainId, contestId: tid};
         // const queryParams =  || {}; 
         const uidRaw = this.request.query.uid;
         const uid = typeof uidRaw === 'string' ? uidRaw.trim() : '-1';
@@ -146,15 +148,42 @@ class SummaryUserHandler extends SummaryHandler {
             throw new ForbiddenError('暂无查看权限！');
         }
         const tudocs = await DocumentModel.getMultiStatus(domainId, TYPE_CONTEST, {docId: tid}).toArray();
-        let tudoc = [];
-        for (const i in tudocs) {
-            tudoc.push(await UserModel.getById(domainId, tudocs[i].uid));
-        }
+        const uids = [...new Set(tudocs.map(t => t.uid))];
+        const users = await UserModel.getMulti({
+            _id: { $in: uids }
+        }).toArray();
+
+        const userMap = new Map(
+            users.map(u => [u._id, u])
+        );
+
+        const tudoc = uids
+            .map(uid => userMap.get(uid))
+            .filter(Boolean);
+
         const udoc = await UserModel.getById(domainId, this.user._id);
-        let pdoc = [];
-        for (const i in tdoc.pids) {
-            pdoc.push(await ProblemModel.get(domainId, tdoc.pids[i]));
+        const pdocs = tdoc.pids?.length
+            ? await ProblemModel.getMulti(
+                domainId,
+                { docId: { $in: tdoc.pids } }
+            ).toArray()
+            : [];
+        const pmap = new Map(
+            pdocs.map(p => [p.docId.toString(), p])
+        );
+        const pdoc = tdoc.pids
+            .map(pid => pmap.get(pid.toString()))
+            .filter(Boolean);
+
+        const domainUser = await DomainModel.getDomainUser(domainId, udoc);
+        if (domainUser) {
+            this.response.body.displayName = domainUser.displayName;
         }
+        else {
+            this.response.body.displayName = '';
+        }
+
+        console.log(pdoc);
 
         this.response.body = {
             ddocs,
@@ -167,7 +196,6 @@ class SummaryUserHandler extends SummaryHandler {
             tudoc,
             uid,
             pid,
-            displayName: (await DomainModel.getDomainUser(domainId, udoc)).displayName,
         };
         if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
             this.response.redirect = this.url('contest_summary_detail', { tid: tid, pid: pdoc[0].pid });
@@ -191,7 +219,7 @@ class SummaryDetailHandler extends SummaryHandler {
             ? await ContestModel.getStatus(domainId, tid, this.user._id)
             : null;
 
-        let query = {contestId: tid, problemId: pid};
+        let query = {domainId, contestId: tid, problemId: pid};
         const uidRaw = this.request.query.uid;
         const uid = typeof uidRaw === 'string' ? uidRaw.trim() : '-1';
         const uudoc = await UserModel.getById(domainId, +uid);
@@ -207,26 +235,35 @@ class SummaryDetailHandler extends SummaryHandler {
 
         const ddoc = await SummaryModel.get(query);
         const udoc = await UserModel.getById(domainId, this.user._id);
-        let pdoc = [];
-        for (const i in tdoc.pids) {
-            pdoc.push(await ProblemModel.get(domainId, tdoc.pids[i]));
-        }
+        const pdocs = tdoc.pids?.length
+            ? await ProblemModel.getMulti(
+                domainId,
+                { docId: { $in: tdoc.pids } }
+            ).toArray()
+            : [];
+        const pmap = new Map(
+            pdocs.map(p => [p.docId.toString(), p])
+        );
+        const pdoc = tdoc.pids
+            .map(pid => pmap.get(pid.toString()))
+            .filter(Boolean);
+
         if (ddoc !== null) {
             const pbRaw = this.request.query.pb;
             const pbstr = typeof pbRaw === 'string' ? pbRaw.trim() : '';
             if (pbstr === "false") {
                 await Promise.all([
-                    SummaryModel.public(tid, ddoc.owner, pid, false),
+                    SummaryModel.public(domainId, tid, ddoc.owner, pid, false),
                 ]);
             }
             else if (pbstr === "true") {
                 await Promise.all([
-                    SummaryModel.public(tid, ddoc.owner, pid, true),
+                    SummaryModel.public(domainId, tid, ddoc.owner, pid, true),
                 ]);
             }
             else {
                 await Promise.all([
-                    SummaryModel.inc(tid, ddoc.owner, pid, 'views', 1),
+                    SummaryModel.inc(domainId, tid, ddoc.owner, pid, 'views', 1),
                 ]);    
             }
         }
@@ -248,7 +285,7 @@ class SummaryEditHandler extends SummaryHandler {
             throw new ForbiddenError();
         }
 
-        let query = {contestId: tid, problemId: pid};
+        let query = {domainId, contestId: tid, problemId: pid};
         const uidRaw = this.request.query.uid;
         const uid = typeof uidRaw === 'string' ? uidRaw.trim() : '-1';
         const uudoc = await UserModel.getById(domainId, +uid);
@@ -271,10 +308,19 @@ class SummaryEditHandler extends SummaryHandler {
             throw new ForbiddenError('不允许修改已公开总结！');
         }
         const udoc = await UserModel.getById(domainId, this.user._id);
-        let pdoc = [];
-        for (const i in tdoc.pids) {
-            pdoc.push(await ProblemModel.get(domainId, tdoc.pids[i]));
-        }
+        const pdocs = tdoc.pids?.length
+            ? await ProblemModel.getMulti(
+                domainId,
+                { docId: { $in: tdoc.pids } }
+            ).toArray()
+            : [];
+        const pmap = new Map(
+            pdocs.map(p => [p.docId.toString(), p])
+        );
+        const pdoc = tdoc.pids
+            .map(pid => pmap.get(pid.toString()))
+            .filter(Boolean);
+
         this.response.template = 'contest_summary_edit.html';
         this.response.body = {
             tdoc, tsdoc, ddoc, udoc, pdoc, pid,
@@ -282,10 +328,14 @@ class SummaryEditHandler extends SummaryHandler {
         };
     }
 
+    async post() {
+        this.checkPriv(PRIV.PRIV_USER_PROFILE);
+    }
+
     @param('tid', Types.ObjectId)
     @param('pid', Types.String)
     @param('content', Types.Content)
-    async postCreate(domainId: string, tid: ObjectId, pid: string, content: string) {
+    async postCreate({ domainId }, tid: ObjectId, pid: string, content: string) {
         await this.limitRate('add_Summary', 3600, 60);
         const result = await SummaryModel.add(domainId, this.user._id, tid, pid, content);
         this.response.body = { result };
@@ -295,8 +345,8 @@ class SummaryEditHandler extends SummaryHandler {
     @param('tid', Types.ObjectId)
     @param('pid', Types.String)
     @param('content', Types.Content)
-    async postUpdate(domainId: string, tid: ObjectId, pid: string, content: string) {
-        let query = {contestId: tid, problemId: pid};
+    async postUpdate({ domainId }, tid: ObjectId, pid: string, content: string) {
+        let query = {domainId, contestId: tid, problemId: pid};
         const uidRaw = this.request.query.uid;
         const uid = typeof uidRaw === 'string' ? uidRaw.trim() : '-1';
         const uudoc = await UserModel.getById(domainId, +uid);
@@ -312,7 +362,7 @@ class SummaryEditHandler extends SummaryHandler {
 
         const ddoc = await SummaryModel.get(query);
         const result = await Promise.all([
-            SummaryModel.edit(ddoc.contestId, ddoc.owner, ddoc.problemId, content),
+            SummaryModel.edit(domainId, ddoc.contestId, ddoc.owner, ddoc.problemId, content),
             OplogModel.log(this, 'summary.edit', ddoc),
         ]);
         this.response.body = { result };
@@ -321,8 +371,8 @@ class SummaryEditHandler extends SummaryHandler {
 
     @param('tid', Types.ObjectId)
     @param('pid', Types.String)
-    async postDelete(domainId: string, tid: ObjectId, pid: string) {
-        let query = {contestId: tid, problemId: pid};
+    async postDelete({ domainId }, tid: ObjectId, pid: string) {
+        let query = {domainId, contestId: tid, problemId: pid};
         const uidRaw = this.request.query.uid;
         const uid = typeof uidRaw === 'string' ? uidRaw.trim() : '-1';
         const uudoc = await UserModel.getById(domainId, +uid);
@@ -337,7 +387,7 @@ class SummaryEditHandler extends SummaryHandler {
         }
         const ddoc = await SummaryModel.get(query);
         await Promise.all([
-            SummaryModel.del(ddoc.contestId, ddoc.owner, ddoc.problemId),
+            SummaryModel.del(domainId, ddoc.contestId, ddoc.owner, ddoc.problemId),
             OplogModel.log(this, 'summary.delete', ddoc),
         ]);
         this.response.redirect = this.url('contest_summary_detail', { tid: tid, pid: pid });
@@ -359,9 +409,9 @@ export async function apply(ctx: Context) {
         }
     });
 
-    ctx.Route('contest_summary', '/contest/:tid/summary', SummaryUserHandler);
-    ctx.Route('contest_summary_edit', '/contest/:tid/summary/:pid/edit', SummaryEditHandler, PRIV.PRIV_USER_PROFILE);
-    ctx.Route('contest_summary_detail', '/contest/:tid/summary/:pid', SummaryDetailHandler);
+    ctx.Route('contest_summary', '/contest/:tid/summary', SummaryUserHandler, { scope: 'domain' });
+    ctx.Route('contest_summary_edit', '/contest/:tid/summary/:pid/edit', SummaryEditHandler, PRIV.PRIV_USER_PROFILE, { scope: 'domain' });
+    ctx.Route('contest_summary_detail', '/contest/:tid/summary/:pid', SummaryDetailHandler, { scope: 'domain' });
     ctx.i18n.load('zh', {
         "{0}'s summary of {1}": '{0} 的 {1} 总结',
         "{0}'s summary of problem {1}. {2}": '{0} 的总结：{1}. {2}',

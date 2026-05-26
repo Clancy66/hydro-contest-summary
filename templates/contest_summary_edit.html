@@ -29,8 +29,8 @@
                                              width: 100% !important;">
           {% if tdoc and tdoc.pids|length <= 26 and tdoc.pids|length > 1 or handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
               {% for p in pdoc -%}
-                <a class="problem__tag-item interactive {% if pid === p.pid %} active{% endif %}"
-                   href="{{ url('contest_summary_detail', tid=tdoc.docId, uid=udoc._id, pid=p.pid)}}"
+                <a class="problem__tag-item interactive {% if pid == p.docId %} active{% endif %}"
+                   href="{{ url('contest_summary_detail', tid=tdoc.docId, uid=udoc._id, pid=p.docId)}}"
                    style="display: inline-flex !important; 
                           align-items: center !important; 
                           justify-content: center !important; 
