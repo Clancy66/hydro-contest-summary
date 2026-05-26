@@ -31,8 +31,8 @@
                                              width: 100% !important;">
           {% if tdoc and tdoc.pids|length <= 26 and tdoc.pids|length > 1 or handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
               {% for p in pdoc -%}
-                <a class="problem__tag-item interactive {% if pid == p.docId %} active{% endif %}"
-                   href="{{ url('contest_summary_detail', tid=tdoc.docId, pid=p.docId)}}"
+                <a class="problem__tag-item interactive {% if pid == p.pid %} active{% endif %}"
+                   href="{{ url('contest_summary_detail', tid=tdoc.docId, pid=p.pid)}}"
                    style="display: inline-flex !important; 
                           align-items: center !important; 
                           justify-content: center !important; 
@@ -51,9 +51,9 @@
         {% if handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
         <form method="get" class="filter-form" name="filter-form">
         <div style="display: flex; align-items: flex-end; gap: 15px; margin: 0; flex-wrap: wrap;">
-          <div class="medium-3 columns" style="margin-bottom: 0;">
+          <div class="medium-3 columns" style="margin-bottom: 0; padding-left: 3px;">
             <label>{{ _('By User') }}</label>
-            <select class="compact select" name="uid">
+            <select class="compact select" name="uid" style="margin-left: 0; padding-left: 0;">
               <option value=""{% if not uid %} selected{% endif %}>{{ _('All') }}</option>
               {%- for u in tudoc -%}
                 <option value="{{ u._id }}"{% if uid == u._id %} selected {% endif %}>{{ u.uname }}</option>

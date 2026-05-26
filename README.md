@@ -4,6 +4,8 @@
 
 ## 普通用户功能
 
+普通用户需要参加比赛才可以在赛后进行总结，对于异步比赛，Hydro 的计时是从打开题目列表的瞬间开始的，因此如果普通用户仅点击了参加比赛，但是没有打开题目列表，会被视为未参加，不能进行赛后总结。
+
 1. 可以创建、更新、删除自己的私有总结
 2. 可以查看比赛详情页的公开总结
 
@@ -22,6 +24,8 @@
 
 所有信息存储在全局表 `summary` 中，不会向任何原生数据表添加字段，便于迁移。
 
+注意 `problemId` 字段对应题目的 `pid` 字段，路由也是按照 `pid` 进行匹配跳转的，在使用该插件时务必确保比赛中的题目有 `pid` 字段，否则将触发 `undefined` 错误。
+
 |字段|类型|说明|
 |:-:|:-:|:-|
 |`domainId`|`string`|域 ID|
@@ -35,3 +39,17 @@
 |`updateAt`|`Date`|最新修改日期|
 |`views`|`number`|浏览量|
 |`isPublic`|`boolean`|是否公开给其他参赛用户|
+
+## 部分截图
+
+![image1.png](./public/image1.png)
+
+![image2.png](./public/image2.png)
+
+![image3.png](./public/image3.png)
+
+![image4.png](./public/image4.png)
+
+![image5.png](./public/image5.png)
+
+![image6.png](./public/image6.png)

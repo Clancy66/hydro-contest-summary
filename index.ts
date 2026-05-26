@@ -183,8 +183,6 @@ class SummaryUserHandler extends SummaryHandler {
             this.response.body.displayName = '';
         }
 
-        console.log(pdoc);
-
         this.response.body = {
             ddocs,
             tdoc,
