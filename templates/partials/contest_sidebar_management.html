@@ -1,11 +1,6 @@
 {% import "components/user.html" as user with context %}
 {% import "components/contest.html" as contest with context %}
 <div class="section side">
-  <a class="contest-sidebar__bg" href="{{ url('contest_detail', tid=tdoc.docId) }}">
-    <div class="section__body">
-      <h1>{{ tdoc.title }}</h1>
-    </div>
-  </a>
   <div>
     <ol class="menu">
       <li class="menu__item"><a class="menu__link" href="{{ url('contest_detail', tid=tdoc.docId) }}">
