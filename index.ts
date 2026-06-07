@@ -111,11 +111,10 @@ class SummaryUserHandler extends SummaryHandler {
     @param('page', Types.PositiveInt, true)
     async get(domainId: string, tid: ObjectId, page = 1) {
         if (!this.user.hasPriv(PRIV.PRIV_USER_PROFILE)) {
-            throw new ForbiddenError();
+            throw new ForbiddenError('你在此域中无相应权限');
         }
 
         let query = {domainId, contestId: tid};
-        // const queryParams =  || {}; 
         const uidRaw = this.request.query.uid;
         const uid = typeof uidRaw === 'string' ? uidRaw.trim() : '-1';
         if (uid) {
@@ -123,7 +122,7 @@ class SummaryUserHandler extends SummaryHandler {
 
             if (uudoc) {
                 if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) && this.user._id !== uudoc._id) {
-                    throw new ForbiddenError();
+                    throw new ForbiddenError('你在此域中无相应权限');
                 }
                 query['owner'] = uudoc._id;
             }
@@ -209,7 +208,7 @@ class SummaryDetailHandler extends SummaryHandler {
     @param('pid', Types.String)
     async get({ domainId }, tid: ObjectId, pid: string) {
         if (!this.user.hasPriv(PRIV.PRIV_USER_PROFILE)) {
-            throw new ForbiddenError();
+            throw new ForbiddenError('你在此域中无相应权限');
         }
 
         const tdoc = await ContestModel.get(domainId, tid);
@@ -222,9 +221,6 @@ class SummaryDetailHandler extends SummaryHandler {
         const uid = typeof uidRaw === 'string' ? uidRaw.trim() : '-1';
         const uudoc = await UserModel.getById(domainId, +uid);
         if (uudoc) {
-            if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) && this.user._id !== uudoc._id) {
-                throw new ForbiddenError();
-            }
             query['owner'] = uudoc._id;
         }
         else {
@@ -250,16 +246,25 @@ class SummaryDetailHandler extends SummaryHandler {
             const pbRaw = this.request.query.pb;
             const pbstr = typeof pbRaw === 'string' ? pbRaw.trim() : '';
             if (pbstr === "false") {
+                if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
+                    throw new ForbiddenError('你在此域中无相应权限');
+                }
                 await Promise.all([
                     SummaryModel.public(domainId, tid, ddoc.owner, pid, false),
                 ]);
             }
             else if (pbstr === "true") {
+                if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
+                    throw new ForbiddenError('你在此域中无相应权限');
+                }
                 await Promise.all([
                     SummaryModel.public(domainId, tid, ddoc.owner, pid, true),
                 ]);
             }
             else {
+                if (ddoc.isPublic !== true && ddoc.owner !== this.user._id && !this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
+                    throw new ForbiddenError('你在此域中无相应权限');
+                }
                 await Promise.all([
                     SummaryModel.inc(domainId, tid, ddoc.owner, pid, 'views', 1),
                 ]);    
@@ -280,7 +285,7 @@ class SummaryEditHandler extends SummaryHandler {
     @param('pid', Types.String)
     async get({ domainId }, tid: ObjectId, pid: string) {
         if (!this.user.hasPriv(PRIV.PRIV_USER_PROFILE)) {
-            throw new ForbiddenError();
+            throw new ForbiddenError('你在此域中无相应权限');
         }
 
         let query = {domainId, contestId: tid, problemId: pid};
@@ -334,6 +339,7 @@ class SummaryEditHandler extends SummaryHandler {
     @param('pid', Types.String)
     @param('content', Types.Content)
     async postCreate({ domainId }, tid: ObjectId, pid: string, content: string) {
+        
         await this.limitRate('add_Summary', 3600, 60);
         const result = await SummaryModel.add(domainId, this.user._id, tid, pid, content);
         this.response.body = { result };

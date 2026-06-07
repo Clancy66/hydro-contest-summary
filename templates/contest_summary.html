@@ -68,7 +68,7 @@
             <select class="compact select" name="pid">
               <option value=""{% if not pid %} selected{% endif %}>{{ _('All') }}</option>
               {%- for p in pdoc -%}
-                <option value="{{ p.docId }}"{% if pid == p.docId %} selected {% endif %}>{{ utils.getAlphabeticId(loop.index0) }}. {{ p.title }}</option>
+                <option value="{{ p.pid }}"{% if pid == p.pid %} selected {% endif %}>{{ utils.getAlphabeticId(loop.index0) }}. {{ p.title }}</option>
               {%- endfor -%}
               {%- if not pdoc|length -%}
                 <option disabled>{{ _('No problem available') }}</option>
