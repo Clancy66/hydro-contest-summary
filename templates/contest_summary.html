@@ -14,7 +14,6 @@
 .summary-table {
     width: 100% !important;
     border-collapse: collapse !important;
-    background: #ffffff !important;
     table-layout: auto !important;
     position: relative !important;
     top: 0 !important;
@@ -37,8 +36,6 @@
 .section,
 div.section,
 .section__body {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
     overflow: visible !important;
 }
 
@@ -90,8 +87,6 @@ table.summary-table td.col--summary-progress .hover-ac-container {
 .section,
 div.section,
 .section__body {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
     
     /* ⚡ 核心修复：开启强制裁剪，防止内部直角表格把卡片的圆角强行撑直 */
     overflow: hidden !important; 
@@ -104,8 +99,6 @@ table.summary-table thead tr,
 table.summary-table thead th,
 table.summary-table tbody tr,
 table.summary-table tbody tr td {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
     box-shadow: none !important; /* 移除任何可能导致视觉直角边缘的内阴影 */
 }
 
@@ -122,6 +115,11 @@ table.summary-table tbody tr:hover,
 table.summary-table tbody tr:hover td {
     background: #f8fafc !important;
     background-color: #f8fafc !important;
+}
+html[data-mantine-color-scheme="dark"] table.summary-table tbody tr:hover,
+html[data-mantine-color-scheme="dark"] table.summary-table tbody tr:hover td {
+    background: #656565 !important;
+    background-color: #656565 !important;
 }
 /* ==========================================================================
    ⚡ 训练列表页表头防下沉重叠修正（完美同步开发环境）
