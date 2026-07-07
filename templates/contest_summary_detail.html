@@ -9,7 +9,7 @@
           <p>{{ _('Click the button below to view, create, or edit summaries for specific problems.') }}</p>
           </br>
           <p>{{ _('The summary content supports Markdown syntax and can be used to record solution write-ups, post-contest analysis, etc.') }}</p>
-          {% if handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
+          {% if handler.user.hasPriv(PRIV.PRIV_SET_PERM) %}
           </br>
           <p>{{ _('Published summaries are visible to all contestants on the contest details page. Private summaries are only visible to you and admins. You can unpublish at any time.') }}</p>
           {% else %}
@@ -26,7 +26,7 @@
                                              align-items: center !important; 
                                              justify-content: flex-start !important; 
                                              width: 100% !important;">
-          {% if tdoc and tdoc.pids|length <= 26 and tdoc.pids|length > 1 or handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
+          {% if tdoc and tdoc.pids|length <= 26 and tdoc.pids|length > 1 or handler.user.hasPriv(PRIV.PRIV_SET_PERM) %}
               {% for p in pdoc -%}
                 <a class="problem__tag-item interactive {% if pid == p.pid %} active{% endif %}"
                    href="{{ url('contest_summary_detail', tid=tdoc.docId, pid=p.pid)}}"
@@ -45,7 +45,7 @@
               {%- endfor %}
           {% endif %}
         </div>
-        {% if handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
+        {% if handler.user.hasPriv(PRIV.PRIV_SET_PERM) %}
         <form method="get">
         <div style="display: flex; align-items: flex-end; gap: 10px;">
           {% if page=="contest_summary" %}
@@ -100,7 +100,7 @@
               {{ _('Update') }}
             </button>
           </a></li>
-          {% if handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
+          {% if handler.user.hasPriv(PRIV.PRIV_SET_PERM) %}
           {% if ddoc.isPublic == true %}
           <li><a href="{{ url('contest_summary_detail', tid=tdoc._id, pid=pid) + '?uid=' + ddoc.owner + '&pb=false' }}">
             <button name="operation" value="update" data-default-submit type="submit" class="rounded primary button">

@@ -121,7 +121,7 @@ class SummaryUserHandler extends SummaryHandler {
             const uudoc = await UserModel.getById(domainId, +uid);
 
             if (uudoc) {
-                if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) && this.user._id !== uudoc._id) {
+                if (!this.user.hasPriv(PRIV.PRIV_SET_PERM) && this.user._id !== uudoc._id) {
                     throw new ForbiddenError('你在此域中无相应权限');
                 }
                 query['owner'] = uudoc._id;
@@ -143,7 +143,7 @@ class SummaryUserHandler extends SummaryHandler {
         const tsdoc = this.user.hasPriv(PRIV.PRIV_USER_PROFILE)
             ? await ContestModel.getStatus(domainId, tid, this.user._id)
             : null;
-        if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) && (!tsdoc || !tsdoc.startAt || !tsdoc.endAt)) {
+        if (!this.user.hasPriv(PRIV.PRIV_SET_PERM) && (!tsdoc || !tsdoc.startAt || !tsdoc.endAt)) {
             throw new ForbiddenError('暂无查看权限！');
         }
         const tudocs = await DocumentModel.getMultiStatus(domainId, TYPE_CONTEST, {docId: tid}).toArray();
@@ -194,7 +194,7 @@ class SummaryUserHandler extends SummaryHandler {
             uid,
             pid,
         };
-        if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
+        if (!this.user.hasPriv(PRIV.PRIV_SET_PERM)) {
             this.response.redirect = this.url('contest_summary_detail', { tid: tid, pid: pdoc[0].pid });
         }
         else {
@@ -246,7 +246,7 @@ class SummaryDetailHandler extends SummaryHandler {
             const pbRaw = this.request.query.pb;
             const pbstr = typeof pbRaw === 'string' ? pbRaw.trim() : '';
             if (pbstr === "false") {
-                if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
+                if (!this.user.hasPriv(PRIV.PRIV_SET_PERM)) {
                     throw new ForbiddenError('你在此域中无相应权限');
                 }
                 await Promise.all([
@@ -254,7 +254,7 @@ class SummaryDetailHandler extends SummaryHandler {
                 ]);
             }
             else if (pbstr === "true") {
-                if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
+                if (!this.user.hasPriv(PRIV.PRIV_SET_PERM)) {
                     throw new ForbiddenError('你在此域中无相应权限');
                 }
                 await Promise.all([
@@ -262,7 +262,7 @@ class SummaryDetailHandler extends SummaryHandler {
                 ]);
             }
             else {
-                if (ddoc.isPublic !== true && ddoc.owner !== this.user._id && !this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
+                if (ddoc.isPublic !== true && ddoc.owner !== this.user._id && !this.user.hasPriv(PRIV.PRIV_SET_PERM)) {
                     throw new ForbiddenError('你在此域中无相应权限');
                 }
                 await Promise.all([
@@ -293,7 +293,7 @@ class SummaryEditHandler extends SummaryHandler {
         const uid = typeof uidRaw === 'string' ? uidRaw.trim() : '-1';
         const uudoc = await UserModel.getById(domainId, +uid);
         if (uudoc) {
-            if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) && this.user._id !== uudoc._id) {
+            if (!this.user.hasPriv(PRIV.PRIV_SET_PERM) && this.user._id !== uudoc._id) {
                 throw new ForbiddenError();
             }
             query['owner'] = uudoc._id;
@@ -307,7 +307,7 @@ class SummaryEditHandler extends SummaryHandler {
             ? await ContestModel.getStatus(domainId, tid, this.user._id)
             : null;
         const ddoc = await SummaryModel.get(query);
-        if (ddoc && ddoc.isPublic === true && !this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN)) {
+        if (ddoc && ddoc.isPublic === true && !this.user.hasPriv(PRIV.PRIV_SET_PERM)) {
             throw new ForbiddenError('不允许修改已公开总结！');
         }
         const udoc = await UserModel.getById(domainId, this.user._id);
@@ -355,7 +355,7 @@ class SummaryEditHandler extends SummaryHandler {
         const uid = typeof uidRaw === 'string' ? uidRaw.trim() : '-1';
         const uudoc = await UserModel.getById(domainId, +uid);
         if (uudoc) {
-            if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) && this.user._id !== uudoc._id) {
+            if (!this.user.hasPriv(PRIV.PRIV_SET_PERM) && this.user._id !== uudoc._id) {
                 throw new ForbiddenError();
             }
             query['owner'] = uudoc._id;
@@ -381,7 +381,7 @@ class SummaryEditHandler extends SummaryHandler {
         const uid = typeof uidRaw === 'string' ? uidRaw.trim() : '-1';
         const uudoc = await UserModel.getById(domainId, +uid);
         if (uudoc) {
-            if (!this.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) && this.user._id !== uudoc._id) {
+            if (!this.user.hasPriv(PRIV.PRIV_SET_PERM) && this.user._id !== uudoc._id) {
                 throw new ForbiddenError();
             }
             query['owner'] = uudoc._id;

@@ -87,7 +87,7 @@
         <span class="icon icon-settings"></span> {{ _('Contest Management') }}
       </a></li>
     {% endif %}
-    {% if handler.user.hasPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN) %}
+    {% if handler.user.hasPriv(PRIV.PRIV_SET_PERM) %}
     <li class="menu__item"><a class="menu__link" href="{{ url('contest_summary', tid=tdoc.docId) }}">
         <span class="icon icon-book"></span> {{ _('Summary') }}
     </a></li>
