@@ -197,7 +197,7 @@ table.summary-table tbody tr td {
         {% include "partials/files.html" %}
       </div>
     {% endif %}
-    {% if handler.user.hasPriv(PRIV.PRIV_SET_PERM) or (tsdoc.attend and tsdoc.endAt) %}
+    {% if handler.user.hasPriv(PRIV.PRIV_SET_PERM) or (tsdoc.attend and tsdoc.startAt) %}
     <div class="section">
       <div class="section__header">
         <h1 class="section__title">{{ _('View Public Summary') }}</h1>
