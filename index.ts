@@ -193,6 +193,7 @@ class SummaryUserHandler extends SummaryHandler {
             tudoc,
             uid,
             pid,
+            displayName: (await DomainModel.getDomainUser(domainId, udoc)).displayName
         };
         if (!this.user.hasPriv(PRIV.PRIV_SET_PERM)) {
             this.response.redirect = this.url('contest_summary_detail', { tid: tid, pid: pdoc[0].pid });
