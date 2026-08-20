@@ -91,7 +91,7 @@
     <li class="menu__item"><a class="menu__link" href="{{ url('contest_summary', tid=tdoc.docId) }}">
         <span class="icon icon-book"></span> {{ _('Summary') }}
     </a></li>
-    {% elif tsdoc.attend and tsdoc.endAt %}
+    {% elif tsdoc.attend and tsdoc.startAt %}
     <li class="menu__item"><a class="menu__link" href="{{ url('contest_summary', tid=tdoc.docId) }}">
         <span class="icon icon-book"></span> {{ _('Summary') }}
     </a></li>
