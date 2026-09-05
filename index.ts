@@ -344,29 +344,29 @@ class SummaryEditHandler extends SummaryHandler {
         await this.limitRate('add_Summary', 3600, 60);
         const result = await SummaryModel.add(domainId, this.user._id, tid, pid, content);
         // 加入金币奖励，防重复
-        const bdoc = await db.collection('bills').findOne({
-            uid: this.user._id,
-            goodsId: tid + pid
-        });
-        const pdoc = await ProblemModel.get(domainId, pid);
+        // const bdoc = await db.collection('bills').findOne({
+        //     uid: this.user._id,
+        //     goodsId: tid + pid
+        // });
+        // const pdoc = await ProblemModel.get(domainId, pid);
 
-        if (bdoc === null || bdoc === undefined) {
-            // 这里必须进账单，不然会出现重复奖励的情况。
-            const currentLog = "[赛后总结奖励] " + pdoc.pid + " " + pdoc.title;
-            await db.collection('bills').insertOne({
-                createAt: new Date(),
-                rootId: this.user._id,
-                uid: this.user._id,
-                goodsId: tid + pid,
-                coins: 10,
-                content: currentLog,
-                check: 2
-            });
-            await db.collection('coins').updateOne({uid: this.user._id}, 
-                { $inc: { total: 10, solution: 10 }},
-                { upsert: true }
-            )
-        }
+        // if (bdoc === null || bdoc === undefined) {
+        //     // 这里必须进账单，不然会出现重复奖励的情况。
+        //     const currentLog = "[赛后总结奖励] " + pdoc.pid + " " + pdoc.title;
+        //     await db.collection('bills').insertOne({
+        //         createAt: new Date(),
+        //         rootId: this.user._id,
+        //         uid: this.user._id,
+        //         goodsId: tid + pid,
+        //         coins: 10,
+        //         content: currentLog,
+        //         check: 2
+        //     });
+        //     await db.collection('coins').updateOne({uid: this.user._id}, 
+        //         { $inc: { total: 10, solution: 10 }},
+        //         { upsert: true }
+        //     )
+        // }
 
         this.response.body = { result };
         this.response.redirect = this.url('contest_summary_detail', { tid: tid, pid: pid });
@@ -421,12 +421,12 @@ class SummaryEditHandler extends SummaryHandler {
             OplogModel.log(this, 'summary.delete', ddoc),
         ]);
         // 删除相应的账单，并扣除相应的金币
-        await db.collection('bills').findOneAndDelete({goodsId: tid + pid});
-        await db.collection('coins').updateOne(
-            { uid: ddoc.owner }, 
-            { $inc: { total: -10, solution: -10 }},
-            { upsert: true }
-        )
+        // await db.collection('bills').findOneAndDelete({goodsId: tid + pid});
+        // await db.collection('coins').updateOne(
+        //     { uid: ddoc.owner }, 
+        //     { $inc: { total: -10, solution: -10 }},
+        //     { upsert: true }
+        // )
         this.response.redirect = this.url('contest_summary_detail', { tid: tid, pid: pid });
     }
 }
